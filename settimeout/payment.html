@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!DOCTYPE html>
+    <html lang="en">
+    
+    <head>
+        <meta charset="UTF-8">
+        <title>Order Page</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+    
+            body {
+                background: #f0f4f8;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                padding: 20px;
+            }
+    
+            #grid {
+                display: flex;
+                justify-content: center;
+                gap: 40px;
+                flex-wrap: wrap;
+                width: 100%;
+            }
+    
+            #data,
+            #data2 {
+                width: 90%;
+                max-width: 400px;
+                background-color: #ffffff;
+                padding: 5%;
+                border-radius: 20px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+    
+            textarea {
+                display: block;
+                width: 100%;
+                resize: none;
+                margin: 10px 0;
+            }
+    
+            label {
+                font-size: clamp(1rem, 2vw, 1.25rem);
+            }
+    
+            .product-info {
+                font-size: clamp(0.9rem, 1.5vw, 1rem);
+            }
+    
+            #order {
+                margin-top: 20px;
+                padding: 10px;
+                width: 100%;
+                border: none;
+                height: 5vh;
+                cursor: pointer;
+            }
+    
+            #addressList label {
+                display: block;
+                padding: 5px 20px 5px 30px;
+                background-color: lightgray;
+                margin-bottom: 5px;
+                border-radius: 5px;
+                position: relative;
+                text-align: left;
+            }
+    
+            #addressList input[type="radio"] {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+            }
+    
+            button {
+                display: block;
+                width: 100%;
+                height: 40px;
+                border: none;
+                cursor: pointer;
+            }
+    
+            #orderGifContainer {
+                display: none;
+                text-align: center;
+            }
+    
+            #orderText {
+                font-size: 1rem;
+                color: green;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div id="grid">
+            <!-- Address Section -->
+            <div id="data2">
+                <label for="address1">Address:</label>
+                <textarea id="address1" placeholder="Enter your address..." rows="3"></textarea>
+                <button id="saved">Save address</button>
+    
+                <br><br>
+                <label>Saved address</label>
+                <textarea id="address2" placeholder="" rows="3" readonly></textarea>
+                <div id="addressList"></div>
+            </div>
+    
+            <!-- Confirmation GIF Section -->
+            <div id="orderGifContainer">
+                <img src="./Animation - 1745293281283.gif" alt="Order Confirmed" width="100" />
+                <div id="orderText"></div>
+            </div>
+    
+            <!-- Payment Section -->
+            <div id="data">
+                <label>CHOOSE PAYMENT METHOD</label>
+                <ul style="list-style: none; padding: 0;">
+                    <li>
+                        <label>🚚 - Cash on Delivery</label>
+                        <input type="radio" value="COD" name="PAYMENT METHOD" required>
+                    </li>
+                    <li>
+                        <label>UPI - पे</label>
+                        <input type="radio" value="UPI" name="PAYMENT METHOD" required>
+                    </li>
+                </ul>
+    
+                <button id="order">Order Now</button>
+                <div id="container"></div>
+            </div>
+        </div>
+    
+        <script>
+            const order = document.getElementById("order");
+            const orderSummaryDiv = document.getElementById("container");
+            const saved = document.getElementById("saved");
+    
+            // Fetch product details from localStorage
+            const productTitle = localStorage.getItem("selectedProduct") || "Test Product";
+            const productimage = localStorage.getItem("selectedProductImage") || "https://via.placeholder.com/100";
+            const productprice = localStorage.getItem("selectedProductPrice") || "0.00";
+    
+            let newadd = JSON.parse(localStorage.getItem("saveddata")) || [];
+    
+            saved.addEventListener("click", () => {
+                const saveddata = document.getElementById("address1").value.trim();
+                if (saveddata === "") {
+                    alert("Address cannot be empty");
+                    return;
+                }
+                newadd.push(saveddata);
+                localStorage.setItem("saveddata", JSON.stringify(newadd));
+                document.getElementById("address1").value = "";
+                renderSavedAddresses();
+            });
+    
+            function renderSavedAddresses() {
+                document.getElementById("address2").value = newadd.join("\n");
+    
+                const container = document.getElementById("addressList");
+                container.innerHTML = "";
+    
+                newadd.forEach((address, index) => {
+                    const label = document.createElement("label");
+                    const radio = document.createElement("input");
+    
+                    radio.type = "radio";
+                    radio.name = "selectedaddress";
+                    radio.value = address;
+    
+                    label.appendChild(radio);
+                    label.appendChild(document.createTextNode(address));
+                    container.appendChild(label);
+                });
+            }
+    
+            window.addEventListener("DOMContentLoaded", renderSavedAddresses);
+    
+            order.addEventListener("click", () => {
+                const paymethod = document.getElementsByName("PAYMENT METHOD");
+                let isOptionChosen = false;
+                for (let method of paymethod) {
+                    if (method.checked) {
+                        isOptionChosen = true;
+                        break;
+                    }
+                }
+    
+                if (!isOptionChosen) {
+                    alert("Please choose a payment method before placing the order.");
+                    return;
+                }
+    
+                const ok = confirm("Are you sure you want to order?");
+                if (ok) {
+                    setTimeout(() => {
+                        document.getElementById("orderGifContainer").style.display = "block";
+                        document.getElementById("orderText").innerHTML = `
+                            <h2>Order Summary</h2>
+                            <img src="${productimage}" width="100" alt="${productTitle}">
+                            <p class="product-info"><strong>Product:</strong> ${productTitle}</p>
+                            <p><strong>Price:</strong> $${productprice}</p>
+                        `;
+                        setTimeout(() => {
+                            alert("Your order will reach your doorstep in 5 days");
+                        }, 2000);
+                    }, 3000);
+                }
+            });
+        </script>
+    </body>
+    
+    </html>
+    
